@@ -31,9 +31,9 @@ public class ProductService {
 
     public ProductResponse createProduct(ProductRequest request) {
         Product product = Product.builder()
-                .name(request.getName())
-                .description(request.getDescription())
-                .price(request.getPrice())
+                .name(request.name())
+                .description(request.description())
+                .price(request.price())
                 .build();
 
         return mapToResponse(productRepository.save(product));
@@ -42,9 +42,9 @@ public class ProductService {
     public ProductResponse updateProduct(String id, ProductRequest request) {
         Product updated = productRepository.findById(id)
                 .map(existing -> {
-                    existing.setName(request.getName());
-                    existing.setDescription(request.getDescription());
-                    existing.setPrice(request.getPrice());
+                    existing.setName(request.name());
+                    existing.setDescription(request.description());
+                    existing.setPrice(request.price());
                     return productRepository.save(existing);
                 })
                 .orElseThrow(() -> new RuntimeException("Product not found with id: " + id));
@@ -60,12 +60,8 @@ public class ProductService {
     }
 
     private ProductResponse mapToResponse(Product product) {
-        return ProductResponse.builder()
-                .id(product.getId())
-                .name(product.getName())
-                .description(product.getDescription())
-                .price(product.getPrice())
-                .build();
+        return new ProductResponse(product.getId(), product.getName(),
+                product.getDescription(), product.getPrice());
     }
 
 

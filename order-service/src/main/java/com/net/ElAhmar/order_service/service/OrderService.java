@@ -6,8 +6,6 @@ import com.net.ElAhmar.order_service.dto.OrderRequest;
 import com.net.ElAhmar.order_service.model.Order;
 import com.net.ElAhmar.order_service.model.OrderItem;
 import com.net.ElAhmar.order_service.repository.OrderRepository;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -27,7 +25,7 @@ public class OrderService {
 
         List<OrderItem> orderLines = orderRequest.getOrderItems()
                 .stream()
-                .map(item -> mapToOrderItem(item))
+                .map(this::mapToOrderItem)
                 .toList();
         order.setOrderItems(orderLines);
         orderRepository.save(order);
