@@ -1,42 +1,42 @@
 package com.net.ElAhmar.order_service.service;
 
 
-import com.net.ElAhmar.order_service.dto.OrderItemDto;
+import com.net.ElAhmar.order_service.client.InventoryClient;
 import com.net.ElAhmar.order_service.dto.OrderRequest;
 import com.net.ElAhmar.order_service.model.Order;
-import com.net.ElAhmar.order_service.model.OrderItem;
 import com.net.ElAhmar.order_service.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class OrderService {
 
     private final OrderRepository orderRepository;
-
+    private final InventoryClient inventoryClient;
 
     public void placeOrder(OrderRequest orderRequest) {
-        Order order = new Order();
-        order.setOrderNumber(UUID.randomUUID().toString());
-
-        List<OrderItem> orderLines = orderRequest.getOrderItems()
-                .stream()
-                .map(this::mapToOrderItem)
-                .toList();
-        order.setOrderItems(orderLines);
-        orderRepository.save(order);
+        boolean inStock = inventoryClient.isInStock(orderRequest.skuCode(), orderRequest.quantity());
+        if (inStock) {
+            var order = mapToOrder(orderRequest);
+            orderRepository.save(order);
+        } else {
+            throw new RuntimeException("Product with Skucode " + orderRequest.skuCode() + "is not in stock");
+        }
     }
 
-    private OrderItem mapToOrderItem(OrderItemDto item) {
-        OrderItem orderItem = new OrderItem();
-        orderItem.setSkuCode(item.getSkuCode());
-        orderItem.setQuantity(item.getQuantity());
-        orderItem.setPrice(item.getPrice());
-        return orderItem;
+    private static Order mapToOrder(OrderRequest orderRequest) {
+        Order order = new Order();
+        order.setOrderNumber(UUID.randomUUID().toString());
+        order.setPrice(orderRequest.price());
+        order.setQuantity(orderRequest.quantity());
+        order.setSkuCode(orderRequest.skuCode());
+        return order;
     }
 
 
